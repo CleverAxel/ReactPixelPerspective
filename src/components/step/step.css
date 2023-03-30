@@ -1,0 +1,17 @@
+.first-enter {
+    transform: translateX(-110%);
+}
+
+.first-enter-active {
+    transform: translateX(0);
+    transition: transform 150ms;
+}
+
+.first-exit {
+    opacity: 1;
+}
+
+.first-exit-active {
+    transform: translateX(-110%);
+    transition: transform 150ms;
+}
