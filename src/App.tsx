@@ -14,18 +14,21 @@ function App() {
     <Routes>
       <Route path='/' element={<h1>BONJOUR</h1>}></Route>
 
-      <Route path='/upload' element={
-        <React.Suspense fallback={<><h2>Loading...</h2></>}>
-          <Header></Header>
-            <MainStep></MainStep>
-        </React.Suspense>
-      }></Route>
+      <Route path='/pixel'>
+        <Route path='upload' element={
+          <React.Suspense fallback={<><h2>Loading...</h2></>}>
+            <Header></Header>
+              <MainStep></MainStep>
+          </React.Suspense>
+        }></Route>
 
-      <Route path='/canvas' element={
-        <React.Suspense fallback={<><h2>Loading...</h2></>}>
-          <MainCanvas></MainCanvas>
-        </React.Suspense>
-      }></Route>
+        <Route path='canvas' element={
+          <React.Suspense fallback={<><h2>Loading...</h2></>}>
+            <MainCanvas></MainCanvas>
+          </React.Suspense>
+        }></Route>
+      </Route>
+
 
     </Routes>
     </>
