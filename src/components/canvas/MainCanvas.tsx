@@ -6,11 +6,46 @@ export default function MainCanvas(){
     const sizeCanvas = 792;
     const sizePixel = 72;
     const refCanvas = useRef<HTMLCanvasElement>(null);
-    const resetScale = 30;
+    const refProgressTxt = useRef<HTMLHeadingElement>(null);
+    const refProgressBar = useRef<HTMLDivElement>(null);
+    const resetScale = 35;
+    // useEffect(() => {
+    //     getProgress();
+    // }, [])
+
+    const getProgress = () => {
+        fetch("http://localhost:8000/progress")
+        .then((res) => {
+            if(res.ok){
+                return res.json();
+            }
+        })
+        .then((json) => {
+            if(refProgressTxt.current == null){
+                return;
+            }
+            if(json.progress.from >= json.progress.to){
+                refProgressTxt.current.textContent = `${json.progress.from} photos sur ${json.progress.to} 🥳 !`;
+            }
+            else if(json.progress.from <= 1){
+                refProgressTxt.current.textContent = `${json.progress.from} photo sur ${json.progress.to}, plus que ${json.progress.to - json.progress.from} !`;
+            }else{
+                refProgressTxt.current.textContent = `${json.progress.from} photos sur ${json.progress.to}, plus que ${json.progress.to - json.progress.from} !`;
+            }
+            setTimeout(() => {
+                if(refProgressBar.current){
+                    refProgressBar.current.style.transform = `scaleX(${json.progress.percentage}%) translateY(-50%) `;
+                }
+            });
+        })
+    }
+
     useEffect(() => {
         if(!refCanvas.current){
             return;
         }
+
+        getProgress();
 
         let target = {
             x : 648,
@@ -50,6 +85,7 @@ export default function MainCanvas(){
         /********************************************* */
 
         const getUpdateWebsocket = (e:MessageEvent) => {
+            getProgress();
             let data = JSON.parse(e.data)
             let dataCoord = data.update.coordinate;
             target.x = dataCoord.x / newRatio;
@@ -58,18 +94,13 @@ export default function MainCanvas(){
             coordinate.x = 0;
             coordinate.y = 0;
             scale = resetScale;
+
             //reload
             newPhoto.src = photo;
             newPhoto.onload = () => {
                 ctx?.drawImage(newPhoto, coordinate.x, coordinate.y, newPixelSize * scale, newPixelSize * scale);
                 requestAnimationFrame(animate);
             }
-            // ctx?.clearRect(0, 0, sizeCanvas, sizeCanvas);
-            // pixelImg.src = "http://localhost:8000/images/pixelPerspective.png?"+ Date.now().toString();
-            // pixelImg.onload = () => {
-            //     ctx?.drawImage(pixelImg, 0, 0, sizeCanvas, sizeCanvas);
-
-            // }
         }
         /******************************************** */
 
@@ -121,30 +152,8 @@ export default function MainCanvas(){
         let ctx = refCanvas.current.getContext("2d");
         
         websocket.current.addEventListener("open", openWebsocket);
-            
-            // pixelImg.onload = () => {
-            //     let nbrPixel = pixelImg.width / sizePixel;                
-            //     let newPixelSize = sizeCanvas / nbrPixel;
-                
-            //     let newRatio = pixelImg.width / sizeCanvas;
-            //     target.x /= newRatio;
-            //     target.y /= newRatio;
-                
-            //     ctx?.drawImage(pixelImg, 0, 0, sizeCanvas, sizeCanvas);
-                
-                
-            //     let photo = new Image();
-            //     photo.src = "/assets/images/photo.png";
-            //     photo.onload = () => {
-            //         console.log( 9 * newPixelSize);
-            //         console.log( 5 * newPixelSize);
-            //         ctx?.drawImage(photo, target.x , target.y, newPixelSize, newPixelSize);
-            //     }
-            // }
         return () => {
             if(idInterval != null){
-                console.log("CLEAN UP MAIN CANVAS");
-                
                 clearInterval(idInterval.current);
                 websocket.current.close();
                 websocket.current.removeEventListener("message", getUpdateWebsocket);
@@ -154,6 +163,12 @@ export default function MainCanvas(){
     }, [])
     return(
         <>
+            <div className="max-w-3xl mx-auto">
+                <h3 ref={refProgressTxt} className="text-center text-4xl font-inter uppercase font-black"></h3>
+                <div className="w-full h-5 bg-gray-400 relative mt-2 rounded-full">
+                    <div ref={refProgressBar} className="origin-left h-3 top-1/2 -translate-y-1/2 transition duration-500 ease-in-out absolute w-[98%] scale-x-0 rounded-full left-0 right-0 mx-auto bg-orange-600"></div>
+                </div>
+            </div>
             <canvas className="mx-auto" ref={refCanvas} width={sizeCanvas} height={sizeCanvas}>
 
             </canvas>
